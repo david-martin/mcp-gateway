@@ -376,6 +376,7 @@ func (r *MCPReconciler) discoverServersFromHTTPRoutes(
 	mcpServer *mcpv1alpha1.MCPServer,
 ) ([]ServerInfo, error) {
 	var serverInfos []ServerInfo
+	log := log.FromContext(ctx)
 
 	targetRef := mcpServer.Spec.TargetRef
 
@@ -523,14 +524,14 @@ func (r *MCPReconciler) discoverServersFromHTTPRoutes(
 
 	// external services need actual hostname for routing
 	routingHostname := hostname
-	if isExternal {
-		// extract hostname without port
-		if idx := strings.LastIndex(nameAndEndpoint, ":"); idx != -1 {
-			routingHostname = nameAndEndpoint[:idx]
-		} else {
-			routingHostname = nameAndEndpoint
-		}
-	}
+
+	log.V(1).Info("Setting routing hostname for MCP server",
+		"mcpServer", mcpServer.Name,
+		"httpRoute", fmt.Sprintf("%s/%s", namespace, targetRef.Name),
+		"hostname", hostname,
+		"routingHostname", routingHostname,
+		"isExternal", isExternal,
+	)
 
 	serverInfo := ServerInfo{
 		Endpoint:           endpoint,
